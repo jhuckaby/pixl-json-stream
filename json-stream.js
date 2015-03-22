@@ -17,6 +17,7 @@ module.exports = Class.create({
 	streamOut: null,
 	buffer: '',
 	perf: null,
+	recordRegExp: /\S/,
 	
 	__construct: function(stream_in, stream_out) {
 		// class constructor
@@ -54,7 +55,7 @@ module.exports = Class.create({
 			
 			for (var idx = 0, len = records.length; idx < len; idx++) {
 				record = records[idx];
-				if (record.match(/\S/)) {
+				if (record.match(self.recordRegExp)) {
 					json = null;
 					
 					if (self.perf) self.perf.begin('json_parse');
