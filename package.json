@@ -20,7 +20,7 @@
 	"dependencies": {
 		"pixl-class": ">=1.0.0"
 	},
-	"devDepenendcies": {
+	"devDependencies": {
 		
 	}
 }
