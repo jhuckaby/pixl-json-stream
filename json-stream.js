@@ -17,7 +17,7 @@ module.exports = Class.create({
 	streamOut: null,
 	buffer: '',
 	perf: null,
-	recordRegExp: /\S/,
+	recordRegExp: /^\s*\{/,
 	
 	__construct: function(stream_in, stream_out) {
 		// class constructor
@@ -61,14 +61,18 @@ module.exports = Class.create({
 					if (self.perf) self.perf.begin('json_parse');
 					try { json = JSON.parse(record); }
 					catch (e) {
-						self.emit('error', new Error("JSON Parse Error: " + e.message));
+						self.emit('error', new Error("JSON Parse Error: " + e.message), record);
 					}
 					if (self.perf) self.perf.end('json_parse');
 					
 					if (json) {
 						self.emit('json', json);
 					}
-				} // record has content
+				} // record has json
+				else if (record.length && record.match(/\S/)) {
+					// non-json garbage, emit just in case app cares
+					self.emit('text', record + "\n");
+				}
 			} // foreach record
 			
 		} );
