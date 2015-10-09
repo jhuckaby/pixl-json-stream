@@ -1,26 +1,24 @@
 {
-	"name": "pixl-json-stream",
-	"version": "1.0.1",
-	"description": "Provides an easy API for sending and receiving JSON records over standard streams (pipes or sockets).",
-	"author": "Joseph Huckaby <jhuckaby@gmail.com>",
-	"homepage": "https://github.com/jhuckaby/pixl-json-stream",
-	"license": "MIT",
-	"main": "json-stream.js",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/jhuckaby/pixl-json-stream"
-	},
-	"bugs": {
-		"url": "https://github.com/jhuckaby/pixl-json-stream/issues"
-	},
-	"keywords": [
-		"json",
-		"stream"
-	],
-	"dependencies": {
-		"pixl-class": ">=1.0.0"
-	},
-	"devDependencies": {
-		
-	}
+  "name": "pixl-json-stream",
+  "version": "1.0.2",
+  "description": "Provides an easy API for sending and receiving JSON records over standard streams (pipes or sockets).",
+  "author": "Joseph Huckaby <jhuckaby@gmail.com>",
+  "homepage": "https://github.com/jhuckaby/pixl-json-stream",
+  "license": "MIT",
+  "main": "json-stream.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhuckaby/pixl-json-stream"
+  },
+  "bugs": {
+    "url": "https://github.com/jhuckaby/pixl-json-stream/issues"
+  },
+  "keywords": [
+    "json",
+    "stream"
+  ],
+  "dependencies": {
+    "pixl-class": ">=1.0.0"
+  },
+  "devDependencies": {}
 }
