@@ -9,81 +9,81 @@ The library handles all buffering for you, and so it will only emit one `json` e
 Use [npm](https://www.npmjs.com/) to install the module:
 
 ```
-	npm install pixl-json-stream
+npm install pixl-json-stream
 ```
 
 Then use `require()` to load it in your code:
 
 ```javascript
-	var JSONStream = require('pixl-json-stream');
+var JSONStream = require('pixl-json-stream');
 ```
 
 To use the module, instantiate an object, and attach it to a stream:
 
 ```javascript
-	var stream = new JSONStream( read_stream, write_stream );
+var stream = new JSONStream( read_stream, write_stream );
 ```
 
 Things like network sockets are both read and write, so you only need to pass in one argument for those:
 
 ```javascript
-	var stream = new JSONStream( socket_handle );
+var stream = new JSONStream( socket_handle );
 ```
 
 You can then add a listener for the `json` event to receive a fully parsed JSON document, or call `write()` to send one.  Example:
 
 ```javascript
-	stream.on('json', function(data) {
-		console.log("Got data: ", data);
-	} );
-	stream.write({ action: "something", code: 1234 });
+stream.on('json', function(data) {
+	console.log("Got data: ", data);
+} );
+stream.write({ action: "something", code: 1234 });
 ```
 
-You will always received pre-parsed JSON as a data object, and `write()` handles all serialization for you as well.  So you never have to call `JSON.parse()` or `JSON.stringify()` directly.
+You will always receive pre-parsed JSON as a data object, and `write()` handles all serialization for you as well.  So you never have to call `JSON.parse()` or `JSON.stringify()` directly.
 
 ## Use With Child Processes
 
 Here is a more complete example, which attaches a read/write JSON stream to a child process, sets up a read listener, and writes to the child:
 
 ```javascript
-	// spawn worker process
-	var child = require('child_process').spawn( 
-		'node', ['my-worker.js'], 
-		{ stdio: ['pipe', 'pipe', 'pipe'] }
-	);
-	
-	// connect json stream to child's stdio
-	// (read from child.stdout, write to child.stdin)
-	var stream = new JSONStream( child.stdout, child.stdin );
-	
-	stream.on('json', function(data) {
-		// received data from child
-		console.log("Got data from child: ", data);
-	} );
-	
-	// write data to child
-	stream.write({
-		action: 'update_user_record',
-		username: 'jhuckaby',
-		other: 12345
-	});
+// spawn worker process
+var child = require('child_process').spawn( 
+	'node', ['my-worker.js'], 
+	{ stdio: ['pipe', 'pipe', 'pipe'] }
+);
+
+// connect json stream to child's stdio
+// (read from child.stdout, write to child.stdin)
+var stream = new JSONStream( child.stdout, child.stdin );
+
+stream.on('json', function(data) {
+	// received data from child
+	console.log("Got data from child: ", data);
+} );
+
+// write data to child
+stream.write({
+	action: 'update_user_record',
+	username: 'jhuckaby',
+	other: 12345
+});
 ```
 
 You can also use a JSON stream in the child process itself, to handle the other side of the pipe:
 
 ```javascript
-	// setup stdin / stdout streams
-	process.stdin.setEncoding('utf8');
-	process.stdout.setEncoding('utf8');
+// setup stdin / stdout streams
+process.stdin.setEncoding('utf8');
+process.stdout.setEncoding('utf8');
+
+var stream = new JSONStream( process.stdin, process.stdout );
+stream.on('json', function(data) {
+	// got data from parent
+	console.log("Got data from parent process: ", data);
 	
-	var stream = new JSONStream( process.stdin, process.stdout );
-	stream.on('json', function(data) {
-		// got data from parent
-		console.log("Got data from parent process: ", data);
-		
-		// send something back
-		stream.write({ code: 0, description: "Success from child" });
-	} );
+	// send something back
+	stream.write({ code: 0, description: "Success from child" });
+} );
 ```
 
 ## Use With Network Sockets
@@ -91,36 +91,36 @@ You can also use a JSON stream in the child process itself, to handle the other 
 You can also use JSON streams over network sockets, providing an easy way to send structured data to/from your clients and servers.  For example, on the server side you could have:
 
 ```javascript
-	var server = require('net').createServer(function(socket) {
-		// new connection, attach JSON stream handler
-		var stream = new JSONStream(socket);
+var server = require('net').createServer(function(socket) {
+	// new connection, attach JSON stream handler
+	var stream = new JSONStream(socket);
+	
+	stream.on('json', function(data) {
+		// got gata from client
+		console.log("Received data from client: ", data);
 		
-		stream.on('json', function(data) {
-			// got gata from client
-			console.log("Received data from client: ", data);
-			
-			// send response
-			stream.write({ code: 1234, description: "We hear you" });
-		} );
-	});
-	server.listen( 3012 );
+		// send response
+		stream.write({ code: 1234, description: "We hear you" });
+	} );
+});
+server.listen( 3012 );
 ```
 
 And on the client side...
 
 ```javascript
-	var client = require('net').connect( {port: 3012}, function() {
-		// connected to server, now use JSON stream to communicate
-		var stream = new JSONStream( client );
-		
-		stream.on('json', function(data) {
-			// got response back from server
-			console.log("Received response from server: ", data);
-		} );
-		
-		// send greetings
-		stream.write({ code: 2345, description: "Hello from client!" });
+var client = require('net').connect( {port: 3012}, function() {
+	// connected to server, now use JSON stream to communicate
+	var stream = new JSONStream( client );
+	
+	stream.on('json', function(data) {
+		// got response back from server
+		console.log("Received response from server: ", data);
 	} );
+	
+	// send greetings
+	stream.write({ code: 2345, description: "Hello from client!" });
+} );
 ```
 
 ## End of Lines
