@@ -123,9 +123,20 @@ And on the client side...
 	} );
 ```
 
+## End of Lines
+
+By default, the library assumes each JSON record will be delimited by the current operating system's end-of-line character sequence ([os.EOL](https://nodejs.org/api/os.html#os_os_eol)), which is `\n` on Unix/Linux/OSX.  However, you can change this by setting the `EOL` string property on your class instance:
+
+```js
+var stream = new JSONStream( socket_handle );
+stream.EOL = "\r\n"; // DOS line endings
+```
+
 # License
 
-Copyright (c) 2015 Joseph Huckaby
+The MIT License
+
+Copyright (c) 2014 - 2016 Joseph Huckaby
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -1,14 +1,15 @@
 // JSON Buffer Stream
 // Handles buffering JSON records over standard streams (pipes or sockets)
 //
-// Assumes one entire JSON document per line, delimited by Unix EOL (\n).
+// Assumes one entire JSON document per line, delimited by EOL.
 // Emits 'json' event for each JSON document received.
 // write() method accepts object to be JSON-stringified and written to stream.
 // Passes errors thru on 'error' event (with addition of JSON parse errors).
 //
-// Copyright (c) 2014 Joseph Huckaby
+// Copyright (c) 2014 - 2016 Joseph Huckaby
 // Released under the MIT License
 
+var os = require('os');
 var Class = require("pixl-class");
 
 module.exports = Class.create({
@@ -18,6 +19,7 @@ module.exports = Class.create({
 	buffer: '',
 	perf: null,
 	recordRegExp: /^\s*\{/,
+	EOL: os.EOL,
 	
 	__construct: function(stream_in, stream_out) {
 		// class constructor
@@ -42,11 +44,11 @@ module.exports = Class.create({
 				self.buffer = '';
 			}
 			
-			var records = data.split(/\n/);
+			var records = data.split( self.EOL );
 			
 			// see if data ends on EOL -- if not, we have a partial block
 			// fill buffer for next read
-			if (data.substring(data.length - 1) != "\n") {
+			if (data.substring(data.length - self.EOL.length) != self.EOL) {
 				self.buffer = records.pop();
 			}
 			
@@ -71,7 +73,7 @@ module.exports = Class.create({
 				} // record has json
 				else if (record.length && record.match(/\S/)) {
 					// non-json garbage, emit just in case app cares
-					self.emit('text', record + "\n");
+					self.emit('text', record + self.EOL);
 				}
 			} // foreach record
 			
@@ -92,7 +94,7 @@ module.exports = Class.create({
 		var data = JSON.stringify(json);
 		if (this.perf) this.perf.end('json_compose');
 		
-		this.streamOut.write( data + "\n", callback );
+		this.streamOut.write( data + this.EOL, callback );
 	}
 	
 });

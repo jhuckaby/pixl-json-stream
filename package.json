@@ -1,6 +1,6 @@
 {
   "name": "pixl-json-stream",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Provides an easy API for sending and receiving JSON records over standard streams (pipes or sockets).",
   "author": "Joseph Huckaby <jhuckaby@gmail.com>",
   "homepage": "https://github.com/jhuckaby/pixl-json-stream",
