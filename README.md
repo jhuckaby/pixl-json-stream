@@ -46,6 +46,8 @@ You will always receive pre-parsed JSON as a data object, and `write()` handles 
 Here is a more complete example, which attaches a read/write JSON stream to a child process, sets up a read listener, and writes to the child:
 
 ```javascript
+var JSONStream = require('pixl-json-stream');
+
 // spawn worker process
 var child = require('child_process').spawn( 
 	'node', ['my-worker.js'], 
@@ -72,9 +74,7 @@ stream.write({
 You can also use a JSON stream in the child process itself, to handle the other side of the pipe:
 
 ```javascript
-// setup stdin / stdout streams
-process.stdin.setEncoding('utf8');
-process.stdout.setEncoding('utf8');
+var JSONStream = require('pixl-json-stream');
 
 var stream = new JSONStream( process.stdin, process.stdout );
 stream.on('json', function(data) {
@@ -83,6 +83,9 @@ stream.on('json', function(data) {
 	
 	// send something back
 	stream.write({ code: 0, description: "Success from child" });
+	
+	// exit child
+	process.exit(0);
 } );
 ```
 
