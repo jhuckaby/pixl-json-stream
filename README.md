@@ -69,6 +69,9 @@ stream.write({
 	username: 'jhuckaby',
 	other: 12345
 });
+
+// close child's stdin so it can exit normally
+child.stdin.end();
 ```
 
 You can also use a JSON stream in the child process itself, to handle the other side of the pipe:
@@ -78,14 +81,8 @@ var JSONStream = require('pixl-json-stream');
 
 var stream = new JSONStream( process.stdin, process.stdout );
 stream.on('json', function(data) {
-	// got data from parent
-	console.log("Got data from parent process: ", data);
-	
-	// send something back
+	// got data from parent, send something back
 	stream.write({ code: 0, description: "Success from child" });
-	
-	// exit child
-	process.exit(0);
 } );
 ```
 
