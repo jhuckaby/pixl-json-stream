@@ -79,10 +79,24 @@ module.exports = Class.create({
 			
 		} );
 		
-		// passthrough errors, other events
-		this.streamIn.on('error', function(e) {
-			self.emit('error', e);
-		} );
+		// catch errors on both streams
+		if (this.streamOut != this.streamIn) {
+			// separate streams
+			this.streamIn.on('error', function(err) {
+				self.emit('error', "Error in input stream: " + err.message);
+			} );
+			this.streamOut.on('error', function(err) {
+				self.emit('error', "Error in output stream: " + err.message);
+			} );
+		}
+		else {
+			// bi-directional stream
+			this.streamIn.on('error', function(err) {
+				self.emit('error', err);
+			} );
+		}
+		
+		// catch end of stream
 		this.streamIn.on('end', function() {
 			self.emit('end');
 		} );
