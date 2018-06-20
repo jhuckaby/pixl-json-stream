@@ -6,7 +6,7 @@
 // write() method accepts object to be JSON-stringified and written to stream.
 // Passes errors thru on 'error' event (with addition of JSON parse errors).
 //
-// Copyright (c) 2014 - 2016 Joseph Huckaby
+// Copyright (c) 2014 - 2018 Joseph Huckaby
 // Released under the MIT License
 
 var os = require('os');
@@ -60,12 +60,15 @@ module.exports = Class.create({
 				if (record.match(self.recordRegExp)) {
 					json = null;
 					
-					if (self.perf) self.perf.begin('json_parse');
+					if (self.perf) self.perf.begin('json_stream_parse');
 					try { json = JSON.parse(record); }
 					catch (e) {
 						self.emit('error', new Error("JSON Parse Error: " + e.message), record);
 					}
-					if (self.perf) self.perf.end('json_parse');
+					if (self.perf) {
+						self.perf.end('json_stream_parse');
+						self.perf.count('json_stream_bytes_read', record.length + self.EOL.length);
+					}
 					
 					if (json) {
 						self.emit('json', json);
@@ -104,11 +107,18 @@ module.exports = Class.create({
 	
 	write: function(json, callback) {
 		// write json data to stream plus EOL
-		if (this.perf) this.perf.begin('json_compose');
+		if (this.perf) this.perf.begin('json_stream_compose');
 		var data = JSON.stringify(json);
-		if (this.perf) this.perf.end('json_compose');
+		if (this.perf) {
+			this.perf.end('json_stream_compose');
+			this.perf.count('json_stream_bytes_written', data.length + this.EOL.length);
+		}
 		
-		this.streamOut.write( data + this.EOL, callback );
+		var result = this.streamOut.write( data + this.EOL, callback );
+		if (!result && this.perf) {
+			this.perf.count('json_stream_write_buffer', 1);
+		}
+		return result;
 	}
 	
 });

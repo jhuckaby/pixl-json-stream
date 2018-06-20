@@ -132,11 +132,29 @@ var stream = new JSONStream( socket_handle );
 stream.EOL = "\r\n"; // DOS line endings
 ```
 
+## Performance Tracking
+
+If you happen to use our [pixl-perf](https://www.npmjs.com/package/pixl-perf) module in your application, you can pass in a performance tracker by calling `setPerf()` on a JSON Stream.  Example:
+
+```js
+stream.setPerf( perf );
+```
+
+This will track the total JSON parse time, the JSON compose time, and the JSON payload sizes on both reads and writes.  Also, if any stream `write()` calls happen to return `false` (i.e. buffered), a special `json_stream_write_buffer` perf counter is incremented.  Here are all the performance tracking keys used:
+
+| Perf Key | Type | Description |
+|----------|------|-------------|
+| `json_stream_parse` | Elapsed Time | Time spent parsing JSON. |
+| `json_stream_compose` | Elapsed Time | Time spent composing JSON. |
+| `json_stream_bytes_read` | Counter | Number of bytes read from stream. |
+| `json_stream_bytes_written` | Counter | Number of bytes written to stream. |
+| `json_stream_write_buffer` | Counter | Number of times the stream `write()` call returned `false`. |
+
 # License
 
-The MIT License
+**The MIT License**
 
-Copyright (c) 2014 - 2016 Joseph Huckaby
+*Copyright (c) 2014 - 2018 Joseph Huckaby*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
