@@ -148,6 +148,8 @@ This will track the total JSON parse time, the JSON compose time, and the JSON p
 | `json_stream_compose` | Elapsed Time | Time spent composing JSON. |
 | `json_stream_bytes_read` | Counter | Number of bytes read from stream. |
 | `json_stream_bytes_written` | Counter | Number of bytes written to stream. |
+| `json_stream_msgs_read` | Counter | Number of JSON messages read from stream. |
+| `json_stream_msgs_written` | Counter | Number of JSON messages written to stream. |
 | `json_stream_write_buffer` | Counter | Number of times the stream `write()` call returned `false`. |
 
 # License

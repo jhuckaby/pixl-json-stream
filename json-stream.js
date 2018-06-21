@@ -67,6 +67,7 @@ module.exports = Class.create({
 					}
 					if (self.perf) {
 						self.perf.end('json_stream_parse');
+						self.perf.count('json_stream_msgs_read', 1);
 						self.perf.count('json_stream_bytes_read', record.length + self.EOL.length);
 					}
 					
@@ -111,6 +112,7 @@ module.exports = Class.create({
 		var data = JSON.stringify(json);
 		if (this.perf) {
 			this.perf.end('json_stream_compose');
+			this.perf.count('json_stream_msgs_written', 1);
 			this.perf.count('json_stream_bytes_written', data.length + this.EOL.length);
 		}
 		
