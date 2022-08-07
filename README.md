@@ -15,19 +15,19 @@ npm install pixl-json-stream
 Then use `require()` to load it in your code:
 
 ```javascript
-var JSONStream = require('pixl-json-stream');
+const JSONStream = require('pixl-json-stream');
 ```
 
 To use the module, instantiate an object, and attach it to a stream:
 
 ```javascript
-var stream = new JSONStream( read_stream, write_stream );
+let stream = new JSONStream( read_stream, write_stream );
 ```
 
-Things like network sockets are both read and write, so you only need to pass in one argument for those:
+Network sockets are both read and write, so you only need to pass in one argument for those:
 
 ```javascript
-var stream = new JSONStream( socket_handle );
+let stream = new JSONStream( socket_handle );
 ```
 
 You can then add a listener for the `json` event to receive a fully parsed JSON document, or call `write()` to send one.  Example:
@@ -46,17 +46,17 @@ You will always receive pre-parsed JSON as a data object, and `write()` handles 
 Here is a more complete example, which attaches a read/write JSON stream to a child process, sets up a read listener, and writes to the child:
 
 ```javascript
-var JSONStream = require('pixl-json-stream');
+const JSONStream = require('pixl-json-stream');
 
 // spawn worker process
-var child = require('child_process').spawn( 
+let child = require('child_process').spawn( 
 	'node', ['my-worker.js'], 
 	{ stdio: ['pipe', 'pipe', 'pipe'] }
 );
 
 // connect json stream to child's stdio
 // (read from child.stdout, write to child.stdin)
-var stream = new JSONStream( child.stdout, child.stdin );
+let stream = new JSONStream( child.stdout, child.stdin );
 
 stream.on('json', function(data) {
 	// received data from child
@@ -77,9 +77,9 @@ child.stdin.end();
 You can also use a JSON stream in the child process itself, to handle the other side of the pipe:
 
 ```javascript
-var JSONStream = require('pixl-json-stream');
+const JSONStream = require('pixl-json-stream');
 
-var stream = new JSONStream( process.stdin, process.stdout );
+let stream = new JSONStream( process.stdin, process.stdout );
 stream.on('json', function(data) {
 	// got data from parent, send something back
 	stream.write({ code: 0, description: "Success from child" });
@@ -91,9 +91,9 @@ stream.on('json', function(data) {
 You can also use JSON streams over network sockets, providing an easy way to send structured data to/from your clients and servers.  For example, on the server side you could have:
 
 ```javascript
-var server = require('net').createServer(function(socket) {
+let server = require('net').createServer(function(socket) {
 	// new connection, attach JSON stream handler
-	var stream = new JSONStream(socket);
+	let stream = new JSONStream(socket);
 	
 	stream.on('json', function(data) {
 		// got gata from client
@@ -109,9 +109,9 @@ server.listen( 3012 );
 And on the client side...
 
 ```javascript
-var client = require('net').connect( {port: 3012}, function() {
+let client = require('net').connect( {port: 3012}, function() {
 	// connected to server, now use JSON stream to communicate
-	var stream = new JSONStream( client );
+	let stream = new JSONStream( client );
 	
 	stream.on('json', function(data) {
 		// got response back from server
@@ -123,20 +123,70 @@ var client = require('net').connect( {port: 3012}, function() {
 } );
 ```
 
+## Matching JSON records
+
+By default, the library recognizes JSON documents on lines using the following regular expression:
+
+```js
+/^\s*\{/
+```
+
+This is a very loose pattern match, designed to be performant (i.e. it only matches up to the first opening curly brace, and then assumes the entire line is JSON).  However, if you would like this to be more strict and/or exact, you can change the pattern by setting the `recordRegExp` property on your stream instance, and set it to a custom regular expression of your choice.  Here is an example of this:
+
+```js
+let stream = new JSONStream( process.stdin, process.stdout );
+stream.recordRegExp = /^\s*\{.+\}\s*$/;
+```
+
+This would match both opening and closing curly braces on a line.  While this is slower, it is more exact and would only match full JSON documents on a line.
+
+## Catching Non-JSON Text
+
+When the library detects non-JSON lines, it emits a `text` event.  You can capture these and handle them how you see fit.  Example:
+
+```js
+let stream = new JSONStream( process.stdin, process.stdout );
+
+stream.on('text', function(text) {
+	// got a line of text that is not JSON
+} );
+```
+
+### Preserving Whitespace
+
+The library will by default skip lines of text that are purely whitespace (e.g. blank empty lines).  If you would like to change this behavior, set the `preserveWhitespace` property to true.  Then you will receive **all** the raw `text` events regardless of their content.  Example:
+
+```js
+let stream = new JSONStream( process.stdin, process.stdout );
+stream.preserveWhitespace = true;
+```
+
 ## End of Lines
 
 By default, the library assumes each JSON record will be delimited by the current operating system's end-of-line character sequence ([os.EOL](https://nodejs.org/api/os.html#os_os_eol)), which is `\n` on Unix/Linux/OSX.  However, you can change this by setting the `EOL` string property on your class instance:
 
 ```js
-var stream = new JSONStream( socket_handle );
+let stream = new JSONStream( process.stdin, process.stdout );
 stream.EOL = "\r\n"; // DOS line endings
 ```
 
-## Performance Tracking
+## Maximum Line Length
 
-If you happen to use our [pixl-perf](https://www.npmjs.com/package/pixl-perf) module in your application, you can pass in a performance tracker by calling `setPerf()` on a JSON Stream.  Example:
+The library has an "emergency brake" which kicks in if a single line grows beyond 2 MB (1,048,576 UTF-16 characters) by default.  This is to prevent a runaway memory situation.  If this limit is reached, the line is truncated *from the end*.  The idea here is to better handle cases where terminal or script output has overwriting lines (i.e. using `/r` carriage returns), where the most important information will probably be towards the end of the buffer.  To customize the line limit, set the `maxLineLength` property on your stream instance.  Example:
 
 ```js
+let stream = new JSONStream( process.stdin, process.stdout );
+stream.maxLineLength = 1024 * 1024;
+```
+
+Note that JavaScript strings are interally encoded in UTF-16, so each character takes up 2 bytes of RAM.
+
+## Performance Tracking
+
+If you happen to use our [pixl-perf](https://www.github.com/jhuckaby/pixl-perf) module in your application, you can pass in a performance tracker by calling `setPerf()` on a JSON Stream.  Example:
+
+```js
+let stream = new JSONStream( process.stdin, process.stdout );
 stream.setPerf( perf );
 ```
 
@@ -156,7 +206,7 @@ This will track the total JSON parse time, the JSON compose time, and the JSON p
 
 **The MIT License**
 
-*Copyright (c) 2014 - 2018 Joseph Huckaby*
+*Copyright (c) 2014 - 2022 Joseph Huckaby*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

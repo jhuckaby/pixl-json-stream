@@ -3,10 +3,11 @@
 //
 // Assumes one entire JSON document per line, delimited by EOL.
 // Emits 'json' event for each JSON document received.
+// Emits `text` event for each non-JSON line.
 // write() method accepts object to be JSON-stringified and written to stream.
 // Passes errors thru on 'error' event (with addition of JSON parse errors).
 //
-// Copyright (c) 2014 - 2018 Joseph Huckaby
+// Copyright (c) 2014 - 2022 Joseph Huckaby
 // Released under the MIT License
 
 var os = require('os');
@@ -19,6 +20,8 @@ module.exports = Class.create({
 	buffer: '',
 	perf: null,
 	recordRegExp: /^\s*\{/,
+	preserveWhitespace: false,
+	maxLineLength: 1024 * 1024,
 	EOL: os.EOL,
 	
 	__construct: function(stream_in, stream_out) {
@@ -41,6 +44,7 @@ module.exports = Class.create({
 		this.streamIn.on('data', function(data) {
 			if (self.buffer) {
 				data = self.buffer + data;
+				if (data.length > self.maxLineLength) data = data.substring( data.length - self.maxLineLength );
 				self.buffer = '';
 			}
 			
@@ -75,8 +79,9 @@ module.exports = Class.create({
 						self.emit('json', json);
 					}
 				} // record has json
-				else if (record.length && record.match(/\S/)) {
-					// non-json garbage, emit just in case app cares
+				else if (self.preserveWhitespace || record.match(/\S/)) {
+					// non-json garbage, emit text event just in case app cares
+					// but only if (1) text has non-whitespace, or (2) preserveWhitespace is set
 					self.emit('text', record + self.EOL);
 				}
 			} // foreach record
