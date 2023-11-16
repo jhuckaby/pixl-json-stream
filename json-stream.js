@@ -82,7 +82,8 @@ module.exports = Class.create({
 				else if (self.preserveWhitespace || record.match(/\S/)) {
 					// non-json garbage, emit text event just in case app cares
 					// but only if (1) text has non-whitespace, or (2) preserveWhitespace is set
-					self.emit('text', record + self.EOL);
+					var text = record + ((idx < len - 1) ? self.EOL : '');
+					if (text.length) self.emit('text', text);
 				}
 			} // foreach record
 			
