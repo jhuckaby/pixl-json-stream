@@ -206,7 +206,7 @@ This will track the total JSON parse time, the JSON compose time, and the JSON p
 
 **The MIT License**
 
-*Copyright (c) 2014 - 2022 Joseph Huckaby*
+*Copyright (c) 2014 - 2026 Joseph Huckaby*
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

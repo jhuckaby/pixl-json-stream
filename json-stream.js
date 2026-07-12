@@ -7,7 +7,7 @@
 // write() method accepts object to be JSON-stringified and written to stream.
 // Passes errors thru on 'error' event (with addition of JSON parse errors).
 //
-// Copyright (c) 2014 - 2022 Joseph Huckaby
+// Copyright (c) 2014 - 2026 Joseph Huckaby
 // Released under the MIT License
 
 var os = require('os');
@@ -48,11 +48,15 @@ module.exports = Class.create({
 				self.buffer = '';
 			}
 			
+			var endsOnEOL = (data.substring(data.length - self.EOL.length) == self.EOL);
 			var records = data.split( self.EOL );
 			
-			// see if data ends on EOL -- if not, we have a partial block
-			// fill buffer for next read
-			if (data.substring(data.length - self.EOL.length) != self.EOL) {
+			// if data ends on EOL, discard the trailing empty split item
+			// otherwise, buffer the partial record for the next read
+			if (endsOnEOL) {
+				records.pop();
+			}
+			else {
 				self.buffer = records.pop();
 			}
 			
@@ -82,7 +86,7 @@ module.exports = Class.create({
 				else if (self.preserveWhitespace || record.match(/\S/)) {
 					// non-json garbage, emit text event just in case app cares
 					// but only if (1) text has non-whitespace, or (2) preserveWhitespace is set
-					var text = record + ((idx < len - 1) ? self.EOL : '');
+					var text = record + self.EOL;
 					if (text.length) self.emit('text', text);
 				}
 			} // foreach record
